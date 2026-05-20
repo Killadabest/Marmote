@@ -20,5 +20,5 @@ Marmote World is a colorful HTML website full of marmote energy, animations, flo
 After publishing with GitHub Pages, the website will be available here:
 
 ```text
-https://your-username.github.io/your-repository-name/
+https://killadabest.github.io/Marmote/
 ```
