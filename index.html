@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marmote World</title>
+  <style>
+    :root {
+      --sky: #8ed8ff;
+      --mint: #b8f5d0;
+      --sun: #ffd166;
+      --rose: #ff6b9a;
+      --ink: #1f2a37;
+      --soil: #7f5539;
+      --fur: #b87944;
+      --fur-dark: #70431f;
+      --cream: #ffe8bb;
+      --panel: rgba(255, 255, 255, 0.82);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255, 209, 102, 0.95) 0 70px, transparent 72px),
+        linear-gradient(180deg, var(--sky) 0%, #d6fbff 44%, var(--mint) 44%, #70d66f 100%);
+    }
+
+    body::before,
+    body::after {
+      position: fixed;
+      inset: auto -10vw 0;
+      z-index: 0;
+      height: 24vh;
+      pointer-events: none;
+      content: "";
+      background:
+        radial-gradient(80px 48px at 8% 55%, #41b849 0 68%, transparent 70%),
+        radial-gradient(140px 70px at 24% 48%, #4cc957 0 68%, transparent 70%),
+        radial-gradient(120px 62px at 43% 62%, #35a943 0 68%, transparent 70%),
+        radial-gradient(150px 72px at 66% 46%, #5bd35b 0 68%, transparent 70%),
+        radial-gradient(110px 58px at 84% 58%, #38b849 0 68%, transparent 70%);
+      filter: drop-shadow(0 -8px 15px rgba(38, 114, 44, 0.12));
+    }
+
+    body::after {
+      height: 16vh;
+      opacity: 0.55;
+      transform: translateY(-9vh) scaleX(1.12);
+      filter: blur(1px);
+    }
+
+    .scene {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 36px clamp(18px, 5vw, 72px) 70px;
+    }
+
+    .cloud {
+      position: fixed;
+      z-index: 0;
+      width: clamp(130px, 18vw, 260px);
+      height: 64px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 42px -18px 0 8px rgba(255, 255, 255, 0.82),
+        82px 2px 0 3px rgba(255, 255, 255, 0.82);
+      animation: drift 18s linear infinite;
+    }
+
+    .cloud.one {
+      top: 14vh;
+      left: -18vw;
+    }
+
+    .cloud.two {
+      top: 29vh;
+      left: -26vw;
+      transform: scale(0.72);
+      animation-duration: 25s;
+      animation-delay: -8s;
+      opacity: 0.75;
+    }
+
+    @keyframes drift {
+      from { translate: -8vw 0; }
+      to { translate: 128vw 0; }
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
+      gap: clamp(28px, 6vw, 80px);
+      align-items: center;
+      min-height: 78vh;
+    }
+
+    .hero-copy {
+      max-width: 850px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 8px 14px;
+      border: 2px solid rgba(31, 42, 55, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 10px 25px rgba(31, 42, 55, 0.11);
+      font-size: clamp(0.82rem, 2vw, 0.95rem);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 22px 0 12px;
+      font-size: clamp(3.5rem, 13vw, 11rem);
+      line-height: 0.85;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow:
+        0 6px 0 #fff1b8,
+        0 13px 22px rgba(63, 44, 23, 0.25);
+    }
+
+    .credit {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(1.25rem, 3vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1.15;
+      color: #193745;
+    }
+
+    .ticker {
+      display: flex;
+      gap: 12px;
+      width: calc(100% + 144px);
+      margin: 34px -72px 0;
+      overflow: hidden;
+      rotate: -2deg;
+      border-block: 3px solid rgba(31, 42, 55, 0.18);
+      background: rgba(255, 255, 255, 0.54);
+      box-shadow: 0 16px 35px rgba(31, 42, 55, 0.08);
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 12px;
+      min-width: max-content;
+      padding: 12px 0;
+      animation: scrollWords 18s linear infinite;
+    }
+
+    .ticker span {
+      padding: 8px 15px;
+      border-radius: 999px;
+      background: #fff;
+      color: #6c3f17;
+      box-shadow: inset 0 -4px 0 rgba(255, 209, 102, 0.45);
+      font-size: clamp(0.95rem, 2vw, 1.18rem);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    @keyframes scrollWords {
+      to { transform: translateX(-50%); }
+    }
+
+    .marmot-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 520px;
+      perspective: 900px;
+    }
+
+    .marmot-card {
+      position: relative;
+      width: min(100%, 390px);
+      aspect-ratio: 0.78;
+      animation: floaty 4.6s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+
+    .marmot-card::before {
+      position: absolute;
+      inset: 12% -7% -6%;
+      z-index: -1;
+      border-radius: 44% 56% 50% 50%;
+      content: "";
+      background: rgba(255, 255, 255, 0.52);
+      filter: blur(8px);
+      transform: translateZ(-60px);
+    }
+
+    .marmot-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 26px 16px rgba(76, 43, 16, 0.25));
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0) rotateX(0deg) rotateZ(-2deg); }
+      50% { transform: translateY(-22px) rotateX(5deg) rotateZ(2deg); }
+    }
+
+    .orbit {
+      position: absolute;
+      inset: 7% -2%;
+      pointer-events: none;
+      animation: orbit 13s linear infinite;
+    }
+
+    .orbit span {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 72px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--fur-dark);
+      box-shadow: 0 12px 28px rgba(31, 42, 55, 0.16);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .orbit span:nth-child(1) { top: 3%; left: 12%; }
+    .orbit span:nth-child(2) { top: 34%; right: -2%; }
+    .orbit span:nth-child(3) { bottom: 4%; left: 22%; }
+    .orbit span:nth-child(4) { top: 51%; left: -4%; }
+
+    @keyframes orbit {
+      to { rotate: 360deg; }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .tile {
+      position: relative;
+      min-height: 136px;
+      overflow: hidden;
+      border: 2px solid rgba(31, 42, 55, 0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.46)),
+        radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 107, 154, 0.38), transparent 42%);
+      box-shadow: 0 16px 32px rgba(31, 42, 55, 0.13);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-8px) rotate(-1deg);
+      box-shadow: 0 25px 42px rgba(31, 42, 55, 0.18);
+    }
+
+    .tile strong {
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      line-height: 0.9;
+      text-transform: uppercase;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .mini-marmot {
+      position: absolute;
+      top: 15px;
+      right: 14px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50% 50% 44% 44%;
+      background: var(--fur);
+      box-shadow:
+        inset -12px -10px 0 rgba(112, 67, 31, 0.22),
+        0 10px 0 -5px var(--fur-dark);
+    }
+
+    .mini-marmot::before,
+    .mini-marmot::after {
+      position: absolute;
+      top: 19px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      content: "";
+      background: #121212;
+      box-shadow: 0 14px 0 -3px #121212;
+    }
+
+    .mini-marmot::before { left: 16px; }
+    .mini-marmot::after { right: 16px; }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      min-height: 48px;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #1f2a37;
+      color: #fff;
+      box-shadow: 0 11px 0 #0e1520, 0 18px 30px rgba(31, 42, 55, 0.22);
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 0 #0e1520, 0 24px 36px rgba(31, 42, 55, 0.26);
+    }
+
+    button:active {
+      transform: translateY(6px);
+      box-shadow: 0 5px 0 #0e1520, 0 12px 20px rgba(31, 42, 55, 0.2);
+    }
+
+    .floating-word,
+    .spark {
+      position: fixed;
+      z-index: 4;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .floating-word {
+      color: rgba(112, 67, 31, 0.42);
+      font-weight: 900;
+      text-transform: uppercase;
+      animation: rise var(--speed, 9s) linear forwards;
+    }
+
+    @keyframes rise {
+      from { transform: translate3d(0, 110vh, 0) rotate(0deg); opacity: 0; }
+      12%, 85% { opacity: 1; }
+      to { transform: translate3d(var(--drift, 20px), -20vh, 0) rotate(18deg); opacity: 0; }
+    }
+
+    .spark {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--sun);
+      box-shadow: 0 0 22px var(--sun);
+      animation: pop 760ms ease-out forwards;
+    }
+
+    @keyframes pop {
+      to {
+        transform: translate(var(--dx), var(--dy)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .cursor-light {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.38), transparent 18rem);
+      mix-blend-mode: soft-light;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .marmot-stage {
+        min-height: 420px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ticker {
+        width: calc(100% + 36px);
+        margin-inline: -18px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .scene {
+        padding-inline: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .marmot-stage {
+        min-height: 340px;
+      }
+
+      .orbit span {
+        width: 58px;
+        font-size: 0.66rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="cloud one"></div>
+  <div class="cloud two"></div>
+  <div class="cursor-light"></div>
+
+  <main class="scene">
+    <section class="hero" aria-label="Marmote website">
+      <div class="hero-copy">
+        <div class="badge">marmote marmote marmote</div>
+        <h1>Marmote</h1>
+        <p class="credit">Website made by Saftoiu David Andrei</p>
+        <div class="button-row">
+          <button type="button" id="burst">MARMOTE POWER</button>
+          <button type="button" id="rain">MORE MARMOTE</button>
+        </div>
+        <div class="ticker" aria-hidden="true">
+          <div class="ticker-track">
+            <span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span>
+            <span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span><span>marmote</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="marmot-stage">
+        <div class="orbit" aria-hidden="true">
+          <span>marmote</span>
+          <span>marmote</span>
+          <span>marmote</span>
+          <span>marmote</span>
+        </div>
+        <div class="marmot-card">
+          <svg class="marmot-svg" viewBox="0 0 400 520" role="img" aria-label="A happy marmot mascot">
+            <defs>
+              <linearGradient id="belly" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#fff0c8"/>
+                <stop offset="1" stop-color="#ffc979"/>
+              </linearGradient>
+              <radialGradient id="furGlow" cx="50%" cy="28%" r="70%">
+                <stop offset="0" stop-color="#d69a5b"/>
+                <stop offset="1" stop-color="#9f6132"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="204" cy="468" rx="135" ry="26" fill="rgba(70, 45, 20, .22)"/>
+            <path d="M78 444c-22-63 4-148 45-202 11-69 48-112 83-112s74 44 83 112c45 58 66 139 43 202-25 67-228 67-254 0Z" fill="url(#furGlow)"/>
+            <path d="M103 153c-30-39-21-87 17-91 24-3 47 22 59 63Z" fill="#9f6132"/>
+            <path d="M301 153c30-39 21-87-17-91-24-3-47 22-59 63Z" fill="#9f6132"/>
+            <path d="M129 141c-14-22-8-48 11-50 13-1 25 13 31 36Z" fill="#70431f"/>
+            <path d="M275 141c14-22 8-48-11-50-13-1-25 13-31 36Z" fill="#70431f"/>
+            <circle cx="202" cy="202" r="102" fill="#b87944"/>
+            <ellipse cx="202" cy="326" rx="89" ry="115" fill="url(#belly)"/>
+            <circle cx="165" cy="194" r="13" fill="#141414"/>
+            <circle cx="239" cy="194" r="13" fill="#141414"/>
+            <circle cx="170" cy="190" r="4" fill="#fff"/>
+            <circle cx="244" cy="190" r="4" fill="#fff"/>
+            <path d="M192 222c4-9 17-9 21 0 3 8-3 14-11 14s-14-6-10-14Z" fill="#2b1a12"/>
+            <path d="M202 234c-3 18-25 21-36 8M202 234c3 18 25 21 36 8" fill="none" stroke="#2b1a12" stroke-width="7" stroke-linecap="round"/>
+            <path d="M126 293c-40 10-67 39-59 65 9 30 52 25 79-7M278 293c40 10 67 39 59 65-9 30-52 25-79-7" fill="#9f6132"/>
+            <path d="M153 429c-31 8-52 25-49 43 4 22 65 19 87 5M251 429c31 8 52 25 49 43-4 22-65 19-87 5" fill="#70431f"/>
+            <path d="M151 279c14 13 26 14 41 0M212 279c14 13 26 14 41 0" fill="none" stroke="#70431f" stroke-width="8" stroke-linecap="round"/>
+            <text x="200" y="389" text-anchor="middle" fill="#70431f" font-size="31" font-family="Trebuchet MS, Arial" font-weight="900">marmote</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Marmote tiles">
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+      <article class="tile"><div class="mini-marmot"></div><strong>marmote</strong></article>
+    </section>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const burstButton = document.querySelector("#burst");
+    const rainButton = document.querySelector("#rain");
+    let rainBoost = false;
+
+    window.addEventListener("pointermove", (event) => {
+      root.style.setProperty("--mx", `${event.clientX}px`);
+      root.style.setProperty("--my", `${event.clientY}px`);
+
+      document.querySelectorAll(".tile").forEach((tile) => {
+        const rect = tile.getBoundingClientRect();
+        tile.style.setProperty("--x", `${event.clientX - rect.left}px`);
+        tile.style.setProperty("--y", `${event.clientY - rect.top}px`);
+      });
+    });
+
+    function makeWord() {
+      const word = document.createElement("div");
+      word.className = "floating-word";
+      word.textContent = "marmote";
+      word.style.left = `${Math.random() * 96}vw`;
+      word.style.fontSize = `${14 + Math.random() * 30}px`;
+      word.style.setProperty("--speed", `${6 + Math.random() * 7}s`);
+      word.style.setProperty("--drift", `${-70 + Math.random() * 140}px`);
+      document.body.appendChild(word);
+      word.addEventListener("animationend", () => word.remove());
+    }
+
+    function sparkle(x, y, count = 18) {
+      for (let i = 0; i < count; i += 1) {
+        const spark = document.createElement("div");
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 55 + Math.random() * 150;
+        spark.className = "spark";
+        spark.style.left = `${x}px`;
+        spark.style.top = `${y}px`;
+        spark.style.background = ["#ffd166", "#ff6b9a", "#70d66f", "#8ed8ff"][i % 4];
+        spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+        spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+        document.body.appendChild(spark);
+        spark.addEventListener("animationend", () => spark.remove());
+      }
+    }
+
+    burstButton.addEventListener("click", (event) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      sparkle(rect.left + rect.width / 2, rect.top + rect.height / 2, 34);
+      for (let i = 0; i < 18; i += 1) makeWord();
+    });
+
+    rainButton.addEventListener("click", () => {
+      rainBoost = !rainBoost;
+      rainButton.textContent = rainBoost ? "MAX MARMOTE" : "MORE MARMOTE";
+      sparkle(window.innerWidth / 2, window.innerHeight / 2, rainBoost ? 42 : 20);
+    });
+
+    setInterval(() => {
+      makeWord();
+      if (rainBoost) {
+        makeWord();
+        makeWord();
+      }
+    }, 520);
+  </script>
+</body>
+</html>
